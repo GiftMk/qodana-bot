@@ -1,0 +1,28 @@
+{
+	"name": "github-app-template",
+	"type": "module",
+	"scripts": {
+		"start:proxy": "tsx watch src/webhook-proxy-server.ts",
+		"start": "tsx watch src/server.ts",
+		"format": "pnpm biome format . --write",
+		"format:check": "pnpm biome format",
+		"lint": "pnpm biome lint . --write",
+		"lint:unsafe": "pnpm biome lint . --write --unsafe",
+		"lint:check": "pnpm biome lint .",
+		"tidy": "pnpm format && pnpm lint"
+	},
+	"dependencies": {
+		"@octokit/app": "^16.1.2",
+		"@octokit/core": "^7.0.6",
+		"dotenv": "^17.2.3",
+		"envalid": "^8.1.1",
+		"winston": "^3.18.3"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.4",
+		"@types/node": "^24.10.0",
+		"smee-client": "^4.4.1",
+		"tsx": "^4.20.6",
+		"typescript": "^5.9.3"
+	}
+}
