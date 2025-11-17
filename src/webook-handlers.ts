@@ -28,7 +28,7 @@ app.webhooks.on('issues.opened', async ({ octokit, payload }) => {
 			context,
 			`Sorry, I couldn't interpret your issue description 😅.`,
 			'If your repo is a monorepo, please provide a simple list of package names like so:',
-			codeBlock('- frontend', 'backend', 'utils'),
+			codeBlock('- frontend', '- backend', '- utils'),
 			'Otherwise leave the description blank 😊',
 		)
 
