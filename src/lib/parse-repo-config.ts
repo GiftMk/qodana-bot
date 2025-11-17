@@ -3,9 +3,9 @@ import { repoConfigSchema, type RepoConfig } from '../types/repo-config'
 import YAML from 'yaml'
 import { getErrorMessage } from '../utils'
 
-export const parseRepoConfig = (
+export const parseRepoConfig = async (
 	content: string | null | undefined,
-): RepoConfig | null => {
+): Promise<RepoConfig | null> => {
 	if (!content?.length) {
 		return { monorepo: false }
 	}

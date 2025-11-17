@@ -1,7 +1,9 @@
 import type { Octokit } from '@octokit/core'
-import type { IssuePayload } from './issue-payload'
+import type { Issue } from '../lib/issue'
+import type { Repository } from '../lib/repository'
 
 export type RequestContext = {
-	issue: IssuePayload
+	issue: Issue
+	repository: Repository
 	octokit: Octokit
 }

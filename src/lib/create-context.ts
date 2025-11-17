@@ -1,32 +1,18 @@
 import type { Octokit } from '@octokit/core'
 import type { RequestContext } from '../types/request-context'
+import type { GitHubIssue } from '../types/github-payload'
+import type { GitHubRepository } from '../types/github-payload'
+import { Issue } from './issue'
+import { Repository } from './repository'
 
-type GitHubPayload = {
-	repository: {
-		owner: {
-			login: string
-		}
-		name: string
-	}
-	issue: {
-		title: string
-		number: number
-		body: string | null
-	}
-}
-
-export const createContext = (
+export const createContext = async (
 	octokit: Octokit,
-	payload: GitHubPayload,
-): RequestContext => {
+	repository: GitHubRepository,
+	issue: GitHubIssue,
+): Promise<RequestContext> => {
 	return {
-		issue: {
-			owner: payload.repository.owner.login,
-			repo: payload.repository.name,
-			issue_number: payload.issue.number,
-			title: payload.issue.title,
-			body: payload.issue.body,
-		},
 		octokit,
+		repository: new Repository({ octokit, repository }),
+		issue: new Issue({ octokit, repository, issue }),
 	}
 }
