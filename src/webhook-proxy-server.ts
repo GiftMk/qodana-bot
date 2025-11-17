@@ -1,6 +1,6 @@
 import { SmeeClient } from 'smee-client'
 import { env } from './environment'
-import { exit } from 'process'
+import { exit } from 'node:process'
 import { logger } from './logger'
 
 if (!env.WEBHOOK_PROXY_URL) {
