@@ -1,15 +1,20 @@
-import { App } from '@octokit/app'
-import { env } from './environment'
-import fs from 'node:fs'
+import { createApp } from './create-app'
+import { logger } from './logger'
+import { respondToIssue } from './lib/respond-to-issue'
+import { createContext } from './lib/create-context'
 
-const privateKey = fs.readFileSync(env.PRIVATE_KEY_FILE, 'utf-8')
+export const app = createApp()
 
-export const app = new App({
-	appId: env.GITHUB_APP_IDENTIFIER,
-	privateKey,
-	webhooks: { secret: env.GITHUB_WEBHOOK_SECRET },
-	oauth: {
-		clientId: env.OAUTH_CLIENT_ID,
-		clientSecret: env.OAUTH_CLIENT_SECRET,
-	},
+app.webhooks.on('issues.opened', async ({ octokit, payload }) => {
+	logger.info('Handling issues.opened event')
+
+	const context = createContext(octokit, payload)
+	await respondToIssue(context)
+})
+
+app.webhooks.on('issues.reopened', async ({ octokit, payload }) => {
+	logger.info('Handling issues.reopened event')
+
+	const context = createContext(octokit, payload)
+	await respondToIssue(context)
 })
