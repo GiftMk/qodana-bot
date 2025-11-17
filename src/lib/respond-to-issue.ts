@@ -1,7 +1,6 @@
 import type { RequestContext } from '../types/request-context'
 import { codeBlock } from './code-block'
-import { createWorkflow } from './create-workflow'
-import { parseRepoConfig } from './parse-repo-config'
+import { createWorkflowFile } from './create-workflow-file'
 
 const TARGET_ISSUE_TITLE = 'qodana setup bot'
 const BRANCH_NAME = 'qodana-setup'
@@ -13,9 +12,7 @@ export const respondToIssue = async ({ repository, issue }: RequestContext) => {
 
 	await issue.react('eyes')
 
-	const repoConfig = await parseRepoConfig(issue?.body)
-
-	if (!repoConfig) {
+	if (!issue.body) {
 		await issue.comment(
 			`Sorry, I couldn't interpret your issue description 😅.`,
 			'If your repo is a monorepo, please provide a simple list of package names like so:',
@@ -29,6 +26,6 @@ export const respondToIssue = async ({ repository, issue }: RequestContext) => {
 	await issue.comment(`Let me cook 🍳`)
 
 	const branch = await repository.createBranch(BRANCH_NAME)
-	const workflow = createWorkflow(repoConfig)
-	await branch.addFile('.github/workflows/qodana.yml', workflow)
+	const workflowFile = createWorkflowFile(issue.body)
+	await branch.addFile(workflowFile)
 }

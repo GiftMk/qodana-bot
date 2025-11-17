@@ -2,6 +2,7 @@ import type { Octokit } from '@octokit/core'
 import { logger } from '../logger'
 import { getErrorMessage } from '../utils'
 import type { GitHubRepository } from '../types/github-payload'
+import type { File } from './file'
 
 type BranchParams = {
 	octokit: Octokit
@@ -20,17 +21,17 @@ export class Branch {
 		this.ref = params.ref
 	}
 
-	async addFile(path: string, content: string) {
+	async addFile(file: File): Promise<string> {
 		try {
 			const { data } = await this.octokit.request(
 				'POST /repos/{owner}/{repo}/contents/{path}',
 				{
 					owner: this.repository.owner.login,
 					repo: this.repository.name,
-					path,
+					path: file.path,
 					branch: this.ref,
 					message: 'Add file',
-					content: Buffer.from(content).toString('base64'),
+					content: file.base64Content,
 				},
 			)
 
