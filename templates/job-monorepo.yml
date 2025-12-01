@@ -1,0 +1,22 @@
+qodana-<PACKAGE_NAME>:
+  runs-on: ubuntu-latest
+  timeout-minutes: 15
+  permissions:
+    contents: write
+    pull-requests: write
+    checks: write
+  steps:
+  - uses: actions/checkout@v5
+    with:
+      ref: "${{ github.event.pull_request.head.sha }}"
+      fetch-depth: 0
+  - name: Qodana Scan
+    uses: JetBrains/qodana-action@v2025.2
+    with:
+      pr-mode: true
+      with:
+        args: "--source-directory,<PACKAGE_NAME>,--config,qodana-<PACKAGE_NAME>.yaml"
+        artifact-name: qodana-<PACKAGE_NAME>
+    env:
+      QODANA_TOKEN: "<QODANA_TOKEN>"
+      QODANA_ENDPOINT: "https://qodana.cloud"

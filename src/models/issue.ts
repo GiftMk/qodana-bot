@@ -3,8 +3,6 @@ import { logger } from '../logger'
 import type { IssueReaction } from '../types/issue-reaction'
 import { getErrorMessage } from '../utils'
 import type { GitHubIssue, GitHubRepository } from '../types/github-payload'
-import YAML from 'yaml'
-import z from 'zod'
 
 type IssueParams = {
 	issue: GitHubIssue
@@ -12,59 +10,17 @@ type IssueParams = {
 	octokit: Octokit
 }
 
-export const issueBodySchema = z.union([
-	z.object({
-		monorepo: z.literal(true),
-		packages: z.array(z.string()),
-	}),
-	z.object({
-		monorepo: z.literal(false),
-	}),
-])
-
-export type IssueBody = z.infer<typeof issueBodySchema>
-
 export class Issue {
 	private readonly octokit: Octokit
 	private readonly repository: GitHubRepository
 	private readonly issue: GitHubIssue
-	private _body: IssueBody | null = null
+	public readonly body: string | null
 
 	constructor(params: IssueParams) {
 		this.octokit = params.octokit
 		this.repository = params.repository
 		this.issue = params.issue
-	}
-
-	get body(): IssueBody | null {
-		if (!this.issue.body) {
-			return null
-		}
-
-		if (!this._body) {
-			this._body = Issue.parseBody(this.issue.body)
-		}
-
-		return this._body
-	}
-
-	private static parseBody(body: string | null): IssueBody | null {
-		if (!body?.length) {
-			return { monorepo: false }
-		}
-
-		try {
-			const yaml = YAML.parse(body)
-			const result = issueBodySchema.safeParse({ monorepo: true, ...yaml })
-			if (!result.success) {
-				throw new Error(result.error?.message)
-			}
-
-			return result.data
-		} catch (error) {
-			logger.error(`Failed to parse repo config: ${getErrorMessage(error)}`)
-			return null
-		}
+		this.body = params.issue.body
 	}
 
 	async react(reaction: IssueReaction) {

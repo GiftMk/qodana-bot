@@ -21,23 +21,43 @@ export class Branch {
 		this.ref = params.ref
 	}
 
-	async addFile(file: File): Promise<string> {
+	async addFiles(...files: File[]): Promise<void> {
+		try {
+			for (const file of files) {
+				await this.octokit.request(
+					'PUT /repos/{owner}/{repo}/contents/{path}',
+					{
+						owner: this.repository.owner.login,
+						repo: this.repository.name,
+						path: file.path,
+						branch: this.ref,
+						message: 'Add file',
+						content: file.base64Content,
+					},
+				)
+			}
+		} catch (error) {
+			logger.error(`Failed to add files: ${getErrorMessage(error)}`)
+			throw error
+		}
+	}
+	async openPullRequest(title: string): Promise<string> {
 		try {
 			const { data } = await this.octokit.request(
-				'POST /repos/{owner}/{repo}/contents/{path}',
+				'POST /repos/{owner}/{repo}/pulls',
 				{
 					owner: this.repository.owner.login,
 					repo: this.repository.name,
-					path: file.path,
-					branch: this.ref,
-					message: 'Add file',
-					content: file.base64Content,
+					title,
+					body: 'Add Qodana workflow',
+					head: this.ref,
+					base: this.repository.default_branch,
 				},
 			)
 
-			return data.content.sha
+			return data.html_url
 		} catch (error) {
-			logger.error(`Failed to add file: ${getErrorMessage(error)}`)
+			logger.error(`Failed to create pull request: ${getErrorMessage(error)}`)
 			throw error
 		}
 	}

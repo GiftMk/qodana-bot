@@ -1,30 +1,34 @@
-import qodanaJob from '../resources/qodana-job.json'
-import qodanaJobMonorepo from '../resources/qodana-job-monorepo.json'
-import qodanaWorkflow from '../resources/pr-workflow.json'
 import YAML from 'yaml'
-import type { IssueBody } from '../models/issue'
 import { File } from '../models/file'
+import type { RepositoryConfig } from './repository-config'
+import { readTemplate } from './readTemplate'
+import { getPackageName } from './get-package-name'
 
-export const createWorkflowFile = (body: IssueBody): File => {
-	const workflow = { ...qodanaWorkflow, jobs: createWorkflowJobs(body) }
+export const createWorkflowFile = (config: RepositoryConfig): File => {
+	const workflowTemplate = readTemplate('pr-workflow.yml')
+	const workflow = { ...workflowTemplate, jobs: createWorkflowJobs(config) }
 
 	return new File(
-		'.github/workflows/qodana.yml',
+		'.github/workflows/qodana.yaml',
 		YAML.stringify(workflow, { indent: 2 }),
 	)
 }
 
-const createWorkflowJobs = (body: IssueBody) => {
-	if (!body.monorepo) {
-		return [qodanaJob]
+const createWorkflowJobs = (config: RepositoryConfig) => {
+	if (!config.monorepo) {
+		return [
+			readTemplate('job.yml', {
+				'<QODANA_TOKEN>': 'todo',
+			}),
+		]
 	}
 
-	return body.packages.map(name =>
-		replaceVariable('<PACKAGE_NAME>', name, qodanaJobMonorepo),
-	)
-}
+	const packages = Object.entries(config.packages)
 
-const replaceVariable = (variable: string, value: string, object: object) => {
-	const string = JSON.stringify(object)
-	return JSON.parse(string.replace(variable, value))
+	return packages.map(([path]) => {
+		return readTemplate('job-monorepo.yml', {
+			'<PACKAGE_NAME>': getPackageName(path),
+			'<QODANA_TOKEN>': 'todo',
+		})
+	})
 }
