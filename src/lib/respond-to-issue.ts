@@ -31,7 +31,10 @@ export const respondToIssue = async ({ repository, issue }: RequestContext) => {
 		return
 	}
 
-	await issue.comment(`Let me cook 🍳`)
+	await issue.comment(
+		`Let me cook 🍳`,
+		quoteBlock('Sometimes I can take a min, please be patient 🤷‍♂️'),
+	)
 
 	const branch = await repository.createBranch(
 		`qodana-setup-${crypto.randomUUID()}`,

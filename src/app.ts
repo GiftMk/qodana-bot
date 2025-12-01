@@ -18,3 +18,10 @@ app.webhooks.on('issues.reopened', async ({ octokit, payload }) => {
 	const context = createContext(octokit, payload.repository, payload.issue)
 	await respondToIssue(context)
 })
+
+app.webhooks.on('issues.edited', async ({ octokit, payload }) => {
+	logger.info('Handling issues.edited event')
+
+	const context = createContext(octokit, payload.repository, payload.issue)
+	await respondToIssue(context)
+})
