@@ -32,7 +32,7 @@ const createQodanaProject = async (teamName: string, projectName: string) => {
 	}
 
 	const response = await fetch(
-		`https://${env.QODANA_CLOUD_URL}/api/v1/public/organizations/projects`,
+		`${env.QODANA_ENDPOINT}/api/v1/public/organizations/projects`,
 		{
 			method: 'POST',
 			body: JSON.stringify(body),

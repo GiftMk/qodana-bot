@@ -9,5 +9,5 @@ export const env = cleanEnv(process.env, {
 	SERVER_PORT: num({ default: 3000 }),
 	OAUTH_CLIENT_ID: str({ default: '' }),
 	OAUTH_CLIENT_SECRET: str({ default: '' }),
-	QODANA_CLOUD_URL: str(),
+	QODANA_ENDPOINT: url({ default: 'https://qodana.cloud' }),
 })

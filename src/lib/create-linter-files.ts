@@ -1,42 +1,23 @@
 import { File } from '../models/file'
 import YAML from 'yaml'
 import { readTemplate } from './read-template'
-import { getPackageName } from './get-package-name'
-import type { Language, RepositoryConfig } from '../models/repository-config'
+import type { RepositoryConfig } from '../models/repository-config'
 
 export const createLinterFiles = (config: RepositoryConfig): File[] => {
-	return config.projects.map(project => {
-		return createLinterFile(
-			`qodana-${getPackageName(project.path)}.yaml`,
-			project.language,
-		)
-	})
-}
+	const distinctLanguages = new Set(config.projects.map(project => project.language))
+	const files: File[] = []
+	
+	for (const language of distinctLanguages) {
+		const file = new File(
+				`qodana-${language}.yaml`,
+				YAML.stringify(readTemplate(`qodana-${language}.yml`), {
+					indent: 2,
+				}),
+			)
 
-const createLinterFile = (path: string, language: Language): File => {
-	switch (language) {
-		case 'c#':
-			return new File(
-				path,
-				YAML.stringify(readTemplate('qodana-csharp.yml'), {
-					indent: 2,
-				}),
-			)
-		case 'java':
-			return new File(
-				path,
-				YAML.stringify(readTemplate('qodana-java.yml'), {
-					indent: 2,
-				}),
-			)
-		case 'ts':
-			return new File(
-				path,
-				YAML.stringify(readTemplate('qodana-ts.yml'), {
-					indent: 2,
-				}),
-			)
-		default:
-			throw new Error(`Unsupported language: ${language}`)
+	
+		files.push(file)
 	}
+
+	return files;
 }
