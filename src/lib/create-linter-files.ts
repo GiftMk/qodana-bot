@@ -1,17 +1,15 @@
 import { File } from '../models/file'
 import YAML from 'yaml'
-import type { Language, RepositoryConfig } from './repository-config'
-import { readTemplate } from './readTemplate'
+import { readTemplate } from './read-template'
 import { getPackageName } from './get-package-name'
+import type { Language, RepositoryConfig } from '../models/repository-config'
 
 export const createLinterFiles = (config: RepositoryConfig): File[] => {
-	if (!config.monorepo) {
-		return [createLinterFile('qodana.yaml', config.language)]
-	}
-
-	const packages = Object.entries(config.packages)
-	return packages.map(([path, language]) => {
-		return createLinterFile(`qodana-${getPackageName(path)}.yaml`, language)
+	return config.projects.map(project => {
+		return createLinterFile(
+			`qodana-${getPackageName(project.path)}.yaml`,
+			project.language,
+		)
 	})
 }
 

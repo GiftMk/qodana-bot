@@ -1,12 +1,19 @@
 import YAML from 'yaml'
 import { File } from '../models/file'
-import type { RepositoryConfig } from './repository-config'
-import { readTemplate } from './readTemplate'
+import { readTemplate } from './read-template'
 import { getPackageName } from './get-package-name'
+import type { RepositoryConfig } from '../models/repository-config'
+import type { ProjectTokens } from './create-qodana-projects'
 
-export const createWorkflowFile = (config: RepositoryConfig): File => {
+export const createWorkflowFile = (
+	config: RepositoryConfig,
+	projectTokens: ProjectTokens,
+): File => {
 	const workflowTemplate = readTemplate('pr-workflow.yml')
-	const workflow = { ...workflowTemplate, jobs: createWorkflowJobs(config) }
+	const workflow = {
+		...workflowTemplate,
+		jobs: createWorkflowJobs(config, projectTokens),
+	}
 
 	return new File(
 		'.github/workflows/qodana.yaml',
@@ -14,21 +21,26 @@ export const createWorkflowFile = (config: RepositoryConfig): File => {
 	)
 }
 
-const createWorkflowJobs = (config: RepositoryConfig) => {
-	if (!config.monorepo) {
-		return [
-			readTemplate('job.yml', {
-				'<QODANA_TOKEN>': 'todo',
-			}),
-		]
-	}
+const createWorkflowJobs = (
+	config: RepositoryConfig,
+	projectTokens: ProjectTokens,
+) => {
+	return config.projects.map(project => {
+		const token = projectTokens[project.name]?.name
 
-	const packages = Object.entries(config.packages)
+		if (!token) {
+			throw new Error(`Failed to get project token for project ${project.name}`)
+		}
 
-	return packages.map(([path]) => {
-		return readTemplate('job-monorepo.yml', {
-			'<PACKAGE_NAME>': getPackageName(path),
-			'<QODANA_TOKEN>': 'todo',
+		if (project.isRoot) {
+			return readTemplate('job-root.yml', {
+				'<QODANA_TOKEN>': token,
+			})
+		}
+
+		return readTemplate('job-package.yml', {
+			'<PACKAGE_NAME>': getPackageName(project.path),
+			'<QODANA_TOKEN>': token,
 		})
 	})
 }

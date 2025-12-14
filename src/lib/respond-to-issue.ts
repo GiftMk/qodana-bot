@@ -1,9 +1,10 @@
+import { RepositoryConfig } from '../models/repository-config'
 import type { RequestContext } from '../types/request-context'
 import { codeBlock } from './code-block'
 import { createLinterFiles } from './create-linter-files'
+import { createQodanaProjects } from './create-qodana-projects'
 import { createWorkflowFile } from './create-workflow-file'
 import { quoteBlock } from './quote-block'
-import { parseRepositoryConfig } from './repository-config'
 import crypto from 'node:crypto'
 
 export const respondToIssue = async ({ repository, issue }: RequestContext) => {
@@ -13,7 +14,7 @@ export const respondToIssue = async ({ repository, issue }: RequestContext) => {
 
 	await issue.react('eyes')
 
-	const config = parseRepositoryConfig(issue.body)
+	const config = issue.body ? RepositoryConfig.from(issue.body) : null
 
 	if (!config) {
 		await issue.comment(
@@ -39,7 +40,14 @@ export const respondToIssue = async ({ repository, issue }: RequestContext) => {
 	const branch = await repository.createBranch(
 		`qodana-setup-${crypto.randomUUID()}`,
 	)
-	const workflowFile = createWorkflowFile(config)
+
+	const projectTokens = await createQodanaProjects(config)
+
+	for (const projectToken of Object.values(projectTokens)) {
+		await repository.createSecret(projectToken.name, projectToken.value)
+	}
+
+	const workflowFile = createWorkflowFile(config, projectTokens)
 	const linterFiles = createLinterFiles(config)
 	await branch.addFiles(workflowFile, ...linterFiles)
 	const pullRequest = await branch.openPullRequest('Add Qodana workflow')
